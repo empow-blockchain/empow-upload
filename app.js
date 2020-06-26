@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express')
 const app = express();
-const PORT = 5000
+const PORT = 6001
 
 const bodyParser = require("body-parser");
 const mkdirp = require('mkdirp');
@@ -42,7 +42,7 @@ async function uploadGif(req, res) {
     }
 
     const fileName = req.file.originalname
-    const pathUpload = path.resolve(__dirname, '../uploads')
+    const pathUpload = path.resolve(__dirname, './uploads')
     const pathFile = pathUpload + '/' + fileName
     const pathFileMp4 = pathUpload + "/" + fileName + ".mp4"
     fs.writeFileSync(pathFile, req.file.buffer)
@@ -158,7 +158,7 @@ async function uploadVideo(req, res) {
             res.status(500)
             return res.send("File not correct format")
         }
-        const pathUpload = path.resolve(__dirname, '../uploads')
+        const pathUpload = path.resolve(__dirname, './uploads')
         fileName = pathUpload + "/" + req.file.originalname
         const pathFile = pathUpload + '/' + req.file.originalname
         let buffer = req.file.buffer

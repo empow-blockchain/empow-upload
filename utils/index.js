@@ -2,6 +2,7 @@ require('dotenv').config({ path: '../.env' });
 
 const ipfsAPI = require('ipfs-http-client')
 const ipfs = ipfsAPI({ host: process.env.IPFS_HOST, port: '5001', protocol: 'http' })
+// const ipfs = ipfsAPI('/ip4/0.0.0.0/tcp/5001')
 const gm = require('gm')
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs');
@@ -41,8 +42,11 @@ function uploadIpfs(file) {
 
         ipfs.add(file, (err, result) => {
             if (err) {
+                console.log(err);
                 reject(err)
             }
+
+            console.log(result);
 
             resolve(process.env.IPFS_GATEWAY + result[0].hash)
         })
