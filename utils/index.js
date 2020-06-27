@@ -1,8 +1,5 @@
 require('dotenv').config({ path: '../.env' });
 
-const ipfsAPI = require('ipfs-http-client')
-const ipfs = ipfsAPI({ host: process.env.IPFS_HOST, port: '5001', protocol: 'http' })
-// const ipfs = ipfsAPI('/ip4/0.0.0.0/tcp/5001')
 const gm = require('gm')
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs');
@@ -40,16 +37,24 @@ function uploadIpfs(file) {
         if (typeof file === "string")
             file = fs.readFileSync(file)
 
-        ipfs.add(file, (err, result) => {
-            if (err) {
-                console.log(err);
-                reject(err)
+        const options = {
+            method: "POST",
+            url: `http://${process.env.IPFS_HOST}:5001/api/v0/add`,
+            headers: {
+                "Content-Type": "multipart/form-data"
+            },
+            formData: {
+                "file": file
             }
+        };
 
-            console.log(result);
-
-            resolve(process.env.IPFS_GATEWAY + result[0].hash)
-        })
+        request(options, function (err, res, body) {
+            if (err) {
+                return reject(err)
+            }
+            const result = JSON.parse(body)
+            resolve(process.env.IPFS_GATEWAY + result.Hash)
+        });
     })
 }
 
@@ -70,7 +75,7 @@ function resizePhoto(buffer, newSize, mimetype) {
 
 function appendPhoto(buffer, originalname, newSize, mimetype, resize = true) {
     return new Promise(async (resolve, reject) => {
-        if(resize) {
+        if (resize) {
             buffer = await resizePhoto(buffer, newSize, mimetype)
         }
 
@@ -83,10 +88,10 @@ function appendPhoto(buffer, originalname, newSize, mimetype, resize = true) {
             let sizeMask;
             try {
                 sizeMask = await getPhotoSize(bufferMask)
-            } catch(err) {
+            } catch (err) {
                 reject(err)
             }
-           
+
             const ratioMask = sizeMask.width / sizeMask.height
 
             const newSizeMask = {
@@ -140,7 +145,7 @@ module.exports = {
             const size = " "
             // size = ' -y -s ' + "670x?";
             const thumbPath = path.resolve(__dirname, "../uploads") + `/${randomString(10)}.jpg`
-            exec(ffmpegPath +' -ss ' + time + ' -i "' + fileName + '"' + size + ' -vframes 1 -f image2 "' + thumbPath +'"', async err => {
+            exec(ffmpegPath + ' -ss ' + time + ' -i "' + fileName + '"' + size + ' -vframes 1 -f image2 "' + thumbPath + '"', async err => {
                 if (err) {
                     return reject(err)
                 }
